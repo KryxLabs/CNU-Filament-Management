@@ -68,6 +68,18 @@ services:
     restart: always
     networks:
       - my_network
+
+  landing_page:
+    image: landing
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+    ports:
+      - "8000:80"
+    volumes:
+      - "./src/web/:/usr/share/nginx/html/"
+    networks:
+      - my_network
           
 networks:
   my_network:
