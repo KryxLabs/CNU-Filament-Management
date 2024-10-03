@@ -1,0 +1,75 @@
+version: '3.8'
+services:
+  db:
+    image: postgres
+    container_name: postgres
+    hostname: postgres
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: ["CMD", "pg_isready", "-q", "-d", "spoolman", "-U", "spoolmanuser"]
+      timeout: 45s
+      interval: 10s
+      retries: 10
+    volumes:
+      - "./data/database:/var/lib/postgresql/data"
+    environment:
+      POSTGRES_DB: spoolman
+      POSTGRES_USER: spoolmanuser
+      POSTGRES_PASSWORD: spoolmanpass
+    restart: on-failure:5
+    networks:
+      - my_network
+
+
+  spoolman:
+    image: ghcr.io/donkie/spoolman:latest
+    container_name: spoolman
+    hostname: spoolman
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8000/
+    ports:
+      - 8080:8000
+    environment:
+      SPOOLMAN_DB_TYPE: postgres
+      SPOOLMAN_DB_HOST: postgres
+      SPOOLMAN_DB_PORT: 5432
+      SPOOLMAN_DB_NAME: spoolman
+      SPOOLMAN_DB_USERNAME: spoolmanuser
+      SPOOLMAN_DB_PASSWORD: spoolmanpass
+      PUID: 1026
+      PGID: 100
+      TZ: America/New_York
+      FORWARDED_ALLOW_IPS: "*"
+      SPOOLMAN_DEBUG_MODE: TRUE
+    volumes:
+      - "./data:/home/app/.local/share/spoolman"  # Shared data from host
+    restart: on-failure:5
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - my_network
+
+
+  grafana:
+    image: grafana
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+    container_name: grafana
+    ports:
+      - "8081:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - "./data:/var/lib/grafana"  # Same shared data from host
+    restart: always
+    networks:
+      - my_network
+          
+networks:
+  my_network:
+    driver: bridge
+
