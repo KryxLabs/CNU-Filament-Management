@@ -1,0 +1,28 @@
+# Ignore data volumes for database and application storage
+
+# Ignore logs and temporary files
+*.log
+*.tmp
+*.swp
+
+# Ignore Docker-related files
+docker-compose.override.yml
+.env
+.dockerignore
+
+# Ignore build files for Grafana (if any)
+docker/grafana/
+
+# Ignore system and editor-specific files
+*.DS_Store
+*.vscode/
+.idea/
+*.bak
+*.backup
+Thumbs.db
+
+# Ignore pyinstaller output (if applicable)
+dist/
+build/
+*.spec
+
